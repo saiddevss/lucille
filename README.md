@@ -1,45 +1,55 @@
---[[
-    Lucille UI Library FAQ ve Kullanım Kılavuzu
-    Version: 1.0.0
-]]
+```markdown
+# Lucille UI Library
+Modern ve kullanıcı dostu bir Roblox UI Library.
 
---[[ FAQ (Sık Sorulan Sorular)
+## İçindekiler
+- [Kurulum](#kurulum)
+- [Temel Kullanım](#temel-kullanım)
+- [Özellikler](#özellikler)
+- [Örnekler](#örnekler)
+- [API Referansı](#api-referansı)
+- [Temalar](#temalar)
+- [SSS](#sss)
 
-Q: Library nasıl başlatılır?
-A: local UI = Library.new("GUI Başlığı")
+## Kurulum
+```lua
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/user/lucille/main/library.lua"))()
+```
 
-Q: Yeni tab nasıl eklenir?
-A: local Tab = UI:CreateTab("Tab Adı")
-
-Q: Toggle butonu nasıl eklenir?
-A: Tab:AddToggle("Toggle Adı", function(state) end)
-
-Q: Slider nasıl eklenir?
-A: Tab:AddSlider("Slider Adı", min, max, default, function(value) end)
-
-Q: Özel tema nasıl uygulanır?
-A: UI:SetTheme({
-    Background = Color3.fromRGB(30, 30, 30),
-    Text = Color3.fromRGB(255, 255, 255),
-    Primary = Color3.fromRGB(0, 255, 128),
-    Secondary = Color3.fromRGB(40, 40, 40)
-})
-]]
-
---[[ ÖRNEK KULLANIMLAR ]]
-
--- Basit Kullanım Örneği:
+## Temel Kullanım
+```lua
+-- UI oluşturma
 local UI = Library.new("Lucille")
-local MainTab = UI:CreateTab("Main")
 
-MainTab:AddToggle("Toggle", function(state)
-    print("Toggle:", state)
-end)
-
--- Gelişmiş Kullanım Örneği:
+-- Tab ekleme
 local CombatTab = UI:CreateTab("Combat")
 
--- KillAura Modülü
+-- Toggle ekleme
+CombatTab:AddToggle("KillAura", function(state)
+    print("KillAura:", state)
+end)
+
+-- Slider ekleme
+CombatTab:AddSlider("Range", 1, 6, 3, function(value)
+    print("Range:", value)
+end)
+```
+
+## Özellikler
+- 🎨 Modern ve şık tasarım
+- 📱 Sürüklenebilir arayüz
+- 🎯 Kolay kullanım
+- ⚡ Yüksek performans
+- 🛠️ Özelleştirilebilir temalar
+- 📦 Modüler yapı
+
+## Örnekler
+
+### Combat Modülü
+```lua
+local CombatTab = UI:CreateTab("Combat")
+
+-- KillAura
 CombatTab:AddToggle("KillAura", function(enabled)
     if enabled then
         -- KillAura aktif
@@ -49,123 +59,42 @@ CombatTab:AddToggle("KillAura", function(enabled)
 end)
 
 CombatTab:AddSlider("Range", 1, 6, 3, function(value)
-    -- Menzil değeri ayarlandı
+    -- Menzil değeri
 end)
+```
 
--- Speed Modülü
+### Movement Modülü
+```lua
 local MovementTab = UI:CreateTab("Movement")
+
+-- Speed
 MovementTab:AddToggle("Speed", function(enabled)
     -- Speed aktif/deaktif
 end)
 
 MovementTab:AddSlider("Speed Value", 1, 10, 2, function(value)
-    -- Hız değeri ayarlandı
+    -- Hız değeri
 end)
+```
 
---[[ ÖZEL MODÜL OLUŞTURMA ]]
+## API Referansı
 
--- Örnek Modül:
-local function CreateModule(tab, name, settings)
-    local container = {
-        enabled = false,
-        settings = settings or {}
-    }
-    
-    -- Ana toggle
-    container.toggle = tab:AddToggle(name, function(state)
-        container.enabled = state
-        if container.enabled then
-            -- Modül aktif
-        else
-            -- Modül deaktif
-        end
-    end)
-    
-    -- Ayarlar
-    if settings.range then
-        container.rangeSlider = tab:AddSlider("Range", 
-            settings.range.min or 1,
-            settings.range.max or 6,
-            settings.range.default or 3,
-            function(value)
-                container.settings.range = value
-            end
-        )
-    end
-    
-    return container
-end
+### Library
+| Metod | Açıklama | Parametreler |
+|-------|-----------|-------------|
+| `Library.new(title)` | Yeni UI oluşturur | `title`: string |
+| `UI:CreateTab(name)` | Yeni tab oluşturur | `name`: string |
+| `UI:SetTheme(theme)` | Tema ayarlar | `theme`: table |
 
---[[ ÖRNEK MODÜLLER ]]
+### Tab
+| Metod | Açıklama | Parametreler |
+|-------|-----------|-------------|
+| `Tab:AddToggle(name, callback)` | Toggle ekler | `name`: string, `callback`: function |
+| `Tab:AddSlider(name, min, max, default, callback)` | Slider ekler | `name`: string, `min`: number, `max`: number, `default`: number, `callback`: function |
 
--- Combat Modülleri:
-local CombatModules = {
-    KillAura = {
-        range = {min = 1, max = 6, default = 3},
-        cps = {min = 1, max = 20, default = 10},
-        mode = {"Single", "Multi"}
-    },
-    
-    Reach = {
-        range = {min = 3, max = 6, default = 3.5}
-    },
-    
-    Velocity = {
-        horizontal = {min = 0, max = 100, default = 0},
-        vertical = {min = 0, max = 100, default = 0}
-    }
-}
-
--- Movement Modülleri:
-local MovementModules = {
-    Speed = {
-        speed = {min = 1, max = 10, default = 2},
-        mode = {"Normal", "CFrame", "TP"}
-    },
-    
-    Flight = {
-        speed = {min = 1, max = 5, default = 2},
-        mode = {"Normal", "Glide"}
-    }
-}
-
---[[ KISA YOLLAR VE İPUÇLARI ]]
-
---[[
-Kısayollar:
-- RightClick: Extra menüyü açar
-- LeftClick: Modülü aktif/deaktif yapar
-- Shift+Click: Hızlı mod değiştirme
-- Ctrl+Click: Varsayılan ayarlara döner
-
-İpuçları:
-1. Modülleri organize edin
-2. Callback fonksiyonlarını ayrı tutun
-3. Hata kontrolü ekleyin
-4. Performansı optimize edin
-5. Kullanıcı dostu arayüz tasarlayın
-]]
-
---[[ HATA AYIKLAMA ]]
-
-local Debug = {
-    enabled = false,
-    
-    log = function(msg)
-        if Debug.enabled then
-            print("[Lucille Debug]:", msg)
-        end
-    end,
-    
-    error = function(msg)
-        if Debug.enabled then
-            warn("[Lucille Error]:", msg)
-        end
-    end
-}
-
---[[ ÖRNEK TEMA ]]
-
+## Temalar
+```lua
+-- Varsayılan tema
 local DefaultTheme = {
     Background = Color3.fromRGB(30, 30, 30),
     Text = Color3.fromRGB(255, 255, 255),
@@ -175,32 +104,81 @@ local DefaultTheme = {
     Slider = Color3.fromRGB(0, 255, 128)
 }
 
---[[ PERFORMANS İPUÇLARI ]]
+-- Tema uygulama
+UI:SetTheme(DefaultTheme)
+```
 
---[[
+## SSS
+
+### UI nasıl başlatılır?
+```lua
+local UI = Library.new("GUI Başlığı")
+```
+
+### Yeni tab nasıl eklenir?
+```lua
+local Tab = UI:CreateTab("Tab Adı")
+```
+
+### Toggle butonu nasıl eklenir?
+```lua
+Tab:AddToggle("Toggle Adı", function(state) end)
+```
+
+### Slider nasıl eklenir?
+```lua
+Tab:AddSlider("Slider Adı", min, max, default, function(value) end)
+```
+
+## Kısayollar
+| Tuş | İşlev |
+|-----|--------|
+| RightClick | Extra menüyü açar |
+| LeftClick | Modülü aktif/deaktif yapar |
+| Shift+Click | Hızlı mod değiştirme |
+| Ctrl+Click | Varsayılan ayarlara döner |
+
+## Performans İpuçları
 1. Gereksiz döngülerden kaçının
 2. Instance'ları yeniden kullanın
 3. Event bağlantılarını temizleyin
 4. Render adımlarını optimize edin
 5. Bellek kullanımını kontrol edin
-]]
 
---[[ GÜVENLİK ÖNLEMLERİ ]]
-
---[[
+## Güvenlik Önlemleri
 1. Anti-cheat bypass kontrolü
 2. Hile tespiti koruması
 3. Güvenli callback yönetimi
 4. Olay filtreleme
 5. Hata yönetimi
-]]
 
---[[ GÜNCELLEME NOTLARI ]]
+## Güncelleme Notları
 
---[[
-v1.0.0
+### v1.0.0
 - İlk sürüm
 - Temel özellikler eklendi
 - UI sistemi geliştirildi
 - Modül sistemi eklendi
-]]
+
+## Lisans
+MIT License
+
+## İletişim
+- Discord: lucille
+- GitHub: github.com/user/lucille
+
+## Katkıda Bulunma
+1. Fork yapın
+2. Feature branch oluşturun
+3. Değişikliklerinizi commit edin
+4. Branch'inizi push edin
+5. Pull request açın
+```
+
+Bu README:
+1. Library'nin temel kullanımını açıklar
+2. Detaylı örnekler sunar
+3. API referansı içerir
+4. SSS bölümü ile yaygın soruları yanıtlar
+5. Performans ve güvenlik ipuçları verir
+6. Güncelleme notları ve lisans bilgisi içerir
