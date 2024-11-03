@@ -1,100 +1,125 @@
--- UI Library
 local Library = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
 function Library:CreateWindow(title)
-    -- Ana GUI
+    -- Ana GUI bileşenleri
     local ScreenGui = Instance.new("ScreenGui")
     local Main = Instance.new("Frame")
     local UICorner = Instance.new("UICorner")
+    local TopBar = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
-    local TabHolder = Instance.new("Frame")
+    local CloseButton = Instance.new("TextButton")
     local TabContainer = Instance.new("ScrollingFrame")
     local TabList = Instance.new("UIListLayout")
-    local ModuleContainer = Instance.new("Frame")
+    local ContentContainer = Instance.new("Frame")
 
-    ScreenGui.Parent = game.CoreGui
+    -- GUI Ayarları
     ScreenGui.Name = "ModernUI"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     Main.Name = "Main"
     Main.Parent = ScreenGui
-    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Main.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Main.Size = UDim2.new(0, 400, 0, 300)
+    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Main.Position = UDim2.new(0.5, -250, 0.5, -175)
+    Main.Size = UDim2.new(0, 500, 0, 350)
+    Main.ClipsDescendants = true
     Main.Active = true
     Main.Draggable = true
 
+    UICorner.CornerRadius = UDim.new(0, 6)
     UICorner.Parent = Main
 
+    TopBar.Name = "TopBar"
+    TopBar.Parent = Main
+    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TopBar.Size = UDim2.new(1, 0, 0, 30)
+
     Title.Name = "Title"
-    Title.Parent = Main
+    Title.Parent = TopBar
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 10, 0, 5)
-    Title.Size = UDim2.new(1, -20, 0, 30)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(1, -40, 1, 0)
     Title.Font = Enum.Font.GothamBold
     Title.Text = title
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 16
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    TabHolder.Name = "TabHolder"
-    TabHolder.Parent = Main
-    TabHolder.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    TabHolder.Position = UDim2.new(0, 10, 0, 40)
-    TabHolder.Size = UDim2.new(0, 100, 1, -50)
+    CloseButton.Name = "Close"
+    CloseButton.Parent = TopBar
+    CloseButton.BackgroundTransparency = 1
+    CloseButton.Position = UDim2.new(1, -30, 0, 0)
+    CloseButton.Size = UDim2.new(0, 30, 1, 0)
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 14
 
     TabContainer.Name = "TabContainer"
-    TabContainer.Parent = TabHolder
-    TabContainer.BackgroundTransparency = 1
-    TabContainer.Size = UDim2.new(1, 0, 1, 0)
+    TabContainer.Parent = Main
+    TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabContainer.Position = UDim2.new(0, 0, 0, 30)
+    TabContainer.Size = UDim2.new(0, 120, 1, -30)
     TabContainer.ScrollBarThickness = 0
+    TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
 
     TabList.Parent = TabContainer
     TabList.SortOrder = Enum.SortOrder.LayoutOrder
     TabList.Padding = UDim.new(0, 5)
 
-    ModuleContainer.Name = "ModuleContainer"
-    ModuleContainer.Parent = Main
-    ModuleContainer.BackgroundTransparency = 1
-    ModuleContainer.Position = UDim2.new(0, 120, 0, 40)
-    ModuleContainer.Size = UDim2.new(1, -130, 1, -50)
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Parent = Main
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.Position = UDim2.new(0, 120, 0, 30)
+    ContentContainer.Size = UDim2.new(1, -120, 1, -30)
+
+    -- Kapatma butonu fonksiyonu
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
 
     local Window = {}
 
     function Window:CreateTab(name)
         local Tab = Instance.new("TextButton")
-        local TabModules = Instance.new("ScrollingFrame")
+        local TabContent = Instance.new("ScrollingFrame")
         local ModuleList = Instance.new("UIListLayout")
 
         Tab.Name = name
         Tab.Parent = TabContainer
         Tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        Tab.Size = UDim2.new(1, -10, 0, 30)
-        Tab.Font = Enum.Font.Gotham
+        Tab.Size = UDim2.new(1, -10, 0, 35)
+        Tab.Font = Enum.Font.GothamSemibold
         Tab.Text = name
         Tab.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Tab.TextSize = 14
+        Tab.TextSize = 12
         Tab.AutoButtonColor = false
 
         local UICorner = Instance.new("UICorner")
+        UICorner.CornerRadius = UDim.new(0, 4)
         UICorner.Parent = Tab
 
-        TabModules.Name = name.."Modules"
-        TabModules.Parent = ModuleContainer
-        TabModules.BackgroundTransparency = 1
-        TabModules.Size = UDim2.new(1, 0, 1, 0)
-        TabModules.ScrollBarThickness = 4
-        TabModules.Visible = false
+        TabContent.Name = name.."Content"
+        TabContent.Parent = ContentContainer
+        TabContent.BackgroundTransparency = 1
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.ScrollBarThickness = 2
+        TabContent.Visible = false
+        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
 
-        ModuleList.Parent = TabModules
+        ModuleList.Parent = TabContent
         ModuleList.SortOrder = Enum.SortOrder.LayoutOrder
         ModuleList.Padding = UDim.new(0, 5)
 
+        -- Tab seçme fonksiyonu
         Tab.MouseButton1Click:Connect(function()
-            for _, v in pairs(ModuleContainer:GetChildren()) do
+            for _, v in pairs(ContentContainer:GetChildren()) do
                 v.Visible = false
             end
-            TabModules.Visible = true
+            TabContent.Visible = true
         end)
 
         local TabFunctions = {}
@@ -102,80 +127,102 @@ function Library:CreateWindow(title)
         function TabFunctions:CreateModule(moduleName)
             local Module = Instance.new("Frame")
             local ModuleTitle = Instance.new("TextLabel")
-            local ModuleToggle = Instance.new("TextButton")
+            local ToggleButton = Instance.new("TextButton")
             local Slider = Instance.new("Frame")
+            local SliderBar = Instance.new("Frame")
             local SliderButton = Instance.new("TextButton")
-            local SliderValue = Instance.new("TextLabel")
+            local ValueLabel = Instance.new("TextLabel")
 
             Module.Name = moduleName
-            Module.Parent = TabModules
+            Module.Parent = TabContent
             Module.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-            Module.Size = UDim2.new(1, -10, 0, 70)
+            Module.Size = UDim2.new(1, -20, 0, 80)
 
             local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(0, 4)
             UICorner.Parent = Module
 
             ModuleTitle.Name = "Title"
             ModuleTitle.Parent = Module
             ModuleTitle.BackgroundTransparency = 1
             ModuleTitle.Position = UDim2.new(0, 10, 0, 5)
-            ModuleTitle.Size = UDim2.new(1, -20, 0, 20)
-            ModuleTitle.Font = Enum.Font.Gotham
+            ModuleTitle.Size = UDim2.new(1, -80, 0, 25)
+            ModuleTitle.Font = Enum.Font.GothamSemibold
             ModuleTitle.Text = moduleName
             ModuleTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
             ModuleTitle.TextSize = 14
             ModuleTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-            ModuleToggle.Name = "Toggle"
-            ModuleToggle.Parent = Module
-            ModuleToggle.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-            ModuleToggle.Position = UDim2.new(1, -60, 0, 5)
-            ModuleToggle.Size = UDim2.new(0, 50, 0, 20)
-            ModuleToggle.Font = Enum.Font.Gotham
-            ModuleToggle.Text = "OFF"
-            ModuleToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ModuleToggle.TextSize = 12
+            ToggleButton.Name = "Toggle"
+            ToggleButton.Parent = Module
+            ToggleButton.Position = UDim2.new(1, -60, 0, 5)
+            ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            ToggleButton.Font = Enum.Font.GothamBold
+            ToggleButton.Text = "OFF"
+            ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ToggleButton.TextSize = 12
 
             local UICorner_2 = Instance.new("UICorner")
-            UICorner_2.Parent = ModuleToggle
+            UICorner_2.CornerRadius = UDim.new(0, 4)
+            UICorner_2.Parent = ToggleButton
 
             Slider.Name = "Slider"
             Slider.Parent = Module
             Slider.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-            Slider.Position = UDim2.new(0, 10, 0, 35)
-            Slider.Size = UDim2.new(1, -20, 0, 25)
+            Slider.Position = UDim2.new(0, 10, 0, 40)
+            Slider.Size = UDim2.new(1, -20, 0, 30)
 
             local UICorner_3 = Instance.new("UICorner")
+            UICorner_3.CornerRadius = UDim.new(0, 4)
             UICorner_3.Parent = Slider
 
-            SliderButton.Name = "SliderButton"
-            SliderButton.Parent = Slider
-            SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SliderButton.Size = UDim2.new(0, 25, 1, 0)
-            SliderButton.Text = ""
+            SliderBar.Name = "Bar"
+            SliderBar.Parent = Slider
+            SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            SliderBar.Size = UDim2.new(0.5, 0, 1, 0)
 
             local UICorner_4 = Instance.new("UICorner")
-            UICorner_4.Parent = SliderButton
+            UICorner_4.CornerRadius = UDim.new(0, 4)
+            UICorner_4.Parent = SliderBar
 
-            SliderValue.Name = "Value"
-            SliderValue.Parent = Slider
-            SliderValue.BackgroundTransparency = 1
-            SliderValue.Size = UDim2.new(1, 0, 1, 0)
-            SliderValue.Font = Enum.Font.Gotham
-            SliderValue.Text = "50"
-            SliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
-            SliderValue.TextSize = 14
+            SliderButton.Name = "Button"
+            SliderButton.Parent = SliderBar
+            SliderButton.AnchorPoint = Vector2.new(1, 0.5)
+            SliderButton.Position = UDim2.new(1, 0, 0.5, 0)
+            SliderButton.Size = UDim2.new(0, 20, 0, 20)
+            SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            SliderButton.Text = ""
 
-            -- Toggle functionality
+            local UICorner_5 = Instance.new("UICorner")
+            UICorner_5.CornerRadius = UDim.new(1, 0)
+            UICorner_5.Parent = SliderButton
+
+            ValueLabel.Name = "Value"
+            ValueLabel.Parent = Slider
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Size = UDim2.new(1, 0, 1, 0)
+            ValueLabel.Font = Enum.Font.GothamSemibold
+            ValueLabel.Text = "50"
+            ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ValueLabel.TextSize = 14
+
+            -- Toggle fonksiyonu
             local enabled = false
-            ModuleToggle.MouseButton1Click:Connect(function()
+            ToggleButton.MouseButton1Click:Connect(function()
                 enabled = not enabled
-                ModuleToggle.Text = enabled and "ON" or "OFF"
-                ModuleToggle.BackgroundColor3 = enabled and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+                ToggleButton.Text = enabled and "ON" or "OFF"
+                ToggleButton.BackgroundColor3 = enabled and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
             end)
 
-            -- Slider functionality
+            -- Slider fonksiyonu
             local dragging = false
+            local function updateSlider(input)
+                local pos = UDim2.new(math.clamp((input.Position.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1), 0, 1, 0)
+                SliderBar.Size = pos
+                ValueLabel.Text = math.floor(pos.X.Scale * 100)
+            end
+
             SliderButton.MouseButton1Down:Connect(function()
                 dragging = true
             end)
@@ -188,14 +235,11 @@ function Library:CreateWindow(title)
 
             UserInputService.InputChanged:Connect(function(input)
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    local mousePos = UserInputService:GetMouseLocation()
-                    local sliderPos = Slider.AbsolutePosition
-                    local sliderSize = Slider.AbsoluteSize
-                    local percent = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
-                    SliderButton.Position = UDim2.new(percent, -12.5, 0, 0)
-                    SliderValue.Text = math.floor(percent * 100)
+                    updateSlider(input)
                 end
             end)
+
+            return Module
         end
 
         return TabFunctions
