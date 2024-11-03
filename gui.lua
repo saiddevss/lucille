@@ -1,300 +1,228 @@
+-- Modern Dropdown GUI for Roblox
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
-local RobloxUILibrary = {}
+-- Dropdown Class
+local Dropdown = {}
+Dropdown.__index = Dropdown
 
--- Utility functions
-local function createInstance(className, properties)
-    local instance = Instance.new(className)
-    for k, v in pairs(properties) do
-        instance[k] = v
+-- Constants
+local DROPDOWN_SETTINGS = {
+    BACKGROUND_COLOR = Color3.fromRGB(45, 45, 45),
+    TEXT_COLOR = Color3.fromRGB(255, 255, 255),
+    HOVER_COLOR = Color3.fromRGB(60, 60, 60),
+    SELECTED_COLOR = Color3.fromRGB(70, 70, 70),
+    CORNER_RADIUS = UDim.new(0, 8),
+    FONT = Enum.Font.GothamSemibold,
+    TEXT_SIZE = 14,
+    PADDING = UDim.new(0, 10),
+    ANIMATION_TIME = 0.3,
+    MAX_VISIBLE_ITEMS = 6
+}
+
+function Dropdown.new(parent, options)
+    local self = setmetatable({}, Dropdown)
+    
+    -- Properties
+    self.options = options or {}
+    self.selectedOption = nil
+    self.isOpen = false
+    self.items = {}
+    
+    -- Create main frame
+    self.mainFrame = Instance.new("Frame")
+    self.mainFrame.Name = "DropdownFrame"
+    self.mainFrame.Size = UDim2.new(0, 200, 0, 40)
+    self.mainFrame.BackgroundColor3 = DROPDOWN_SETTINGS.BACKGROUND_COLOR
+    self.mainFrame.Parent = parent
+    
+    -- Corner radius
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = DROPDOWN_SETTINGS.CORNER_RADIUS
+    corner.Parent = self.mainFrame
+    
+    -- Selected text
+    self.selectedText = Instance.new("TextLabel")
+    self.selectedText.Name = "SelectedText"
+    self.selectedText.Size = UDim2.new(1, -40, 1, 0)
+    self.selectedText.Position = UDim2.new(0, 10, 0, 0)
+    self.selectedText.BackgroundTransparency = 1
+    self.selectedText.Text = "Select an option..."
+    self.selectedText.TextColor3 = DROPDOWN_SETTINGS.TEXT_COLOR
+    self.selectedText.TextSize = DROPDOWN_SETTINGS.TEXT_SIZE
+    self.selectedText.Font = DROPDOWN_SETTINGS.FONT
+    self.selectedText.TextXAlignment = Enum.TextXAlignment.Left
+    self.selectedText.Parent = self.mainFrame
+    
+    -- Arrow icon
+    self.arrow = Instance.new("ImageLabel")
+    self.arrow.Name = "Arrow"
+    self.arrow.Size = UDim2.new(0, 20, 0, 20)
+    self.arrow.Position = UDim2.new(1, -30, 0.5, -10)
+    self.arrow.BackgroundTransparency = 1
+    self.arrow.Image = "rbxassetid://6034818372"
+    self.arrow.Parent = self.mainFrame
+    
+    -- Options container
+    self.optionsFrame = Instance.new("Frame")
+    self.optionsFrame.Name = "OptionsFrame"
+    self.optionsFrame.Size = UDim2.new(1, 0, 0, 0)
+    self.optionsFrame.Position = UDim2.new(0, 0, 1, 5)
+    self.optionsFrame.BackgroundColor3 = DROPDOWN_SETTINGS.BACKGROUND_COLOR
+    self.optionsFrame.ClipsDescendants = true
+    self.optionsFrame.Visible = false
+    self.optionsFrame.Parent = self.mainFrame
+    
+    -- Corner radius for options
+    local optionsCorner = Instance.new("UICorner")
+    optionsCorner.CornerRadius = DROPDOWN_SETTINGS.CORNER_RADIUS
+    optionsCorner.Parent = self.optionsFrame
+    
+    -- Options list
+    self.optionsList = Instance.new("UIListLayout")
+    self.optionsList.Name = "OptionsList"
+    self.optionsList.Padding = UDim.new(0, 2)
+    self.optionsList.Parent = self.optionsFrame
+    
+    -- Initialize
+    self:SetOptions(self.options)
+    self:ConnectEvents()
+    
+    return self
+end
+
+function Dropdown:SetOptions(options)
+    -- Clear existing options
+    for _, item in pairs(self.items) do
+        item:Destroy()
     end
-    return instance
-end
-
--- Create a basic frame
-function RobloxUILibrary:createFrame(name, parent, size, position)
-    return createInstance("Frame", {
-        Name = name,
-        Parent = parent,
-        Size = size or UDim2.new(0, 200, 0, 200),
-        Position = position or UDim2.new(0.5, -100, 0.5, -100),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 0,
-        ClipsDescendants = true
-    })
-end
-
--- Create a text label
-function RobloxUILibrary:createLabel(name, parent, text, position)
-    return createInstance("TextLabel", {
-        Name = name,
-        Parent = parent,
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = position or UDim2.new(0, 10, 0, 5),
-        BackgroundTransparency = 1,
-        Text = text,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 16,
-        Font = Enum.Font.GothamSemibold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-end
-
--- Create a button
-function RobloxUILibrary:createButton(name, parent, text, position, callback)
-    local button = createInstance("TextButton", {
-        Name = name,
-        Parent = parent,
-        Size = UDim2.new(0, 120, 0, 35),
-        Position = position or UDim2.new(0.5, -60, 1, -45),
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        Text = text,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.GothamSemibold,
-        AutoButtonColor = false
-    })
+    self.items = {}
     
-    local cornerRadius = createInstance("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = button
-    })
-    
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
-    end)
-    
-    button.MouseButton1Down:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
-    end)
-    
-    button.MouseButton1Up:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
-    end)
-    
-    button.MouseButton1Click:Connect(callback)
-    return button
-end
-
--- Create a text input
-function RobloxUILibrary:createTextInput(name, parent, placeholderText, position)
-    local textBox = createInstance("TextBox", {
-        Name = name,
-        Parent = parent,
-        Size = UDim2.new(1, -20, 0, 35),
-        Position = position or UDim2.new(0, 10, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        Text = "",
-        PlaceholderText = placeholderText,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        PlaceholderColor3 = Color3.fromRGB(180, 180, 180),
-        TextSize = 14,
-        Font = Enum.Font.Gotham,
-        ClearTextOnFocus = false
-    })
-    
-    local cornerRadius = createInstance("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = textBox
-    })
-    
-    local padding = createInstance("UIPadding", {
-        PaddingLeft = UDim.new(0, 10),
-        Parent = textBox
-    })
-    
-    textBox.Focused:Connect(function()
-        TweenService:Create(textBox, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
-    end)
-    
-    textBox.FocusLost:Connect(function()
-        TweenService:Create(textBox, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
-    end)
-    
-    return textBox
-end
-
--- Create a modern dropdown
-function RobloxUILibrary:createDropdown(name, parent, options, position)
-    local dropdown = createInstance("Frame", {
-        Name = name,
-        Parent = parent,
-        Size = UDim2.new(1, -20, 0, 35),
-        Position = position or UDim2.new(0, 10, 0, 75),
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        ClipsDescendants = true
-    })
-    
-    local cornerRadius = createInstance("UICorner", {
-        CornerRadius = UDim.new(0, 6),
-        Parent = dropdown
-    })
-    
-    local selectedOption = createInstance("TextLabel", {
-        Name = "SelectedOption",
-        Parent = dropdown,
-        Size = UDim2.new(1, -35, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Select an option",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-    
-    local toggleButton = createInstance("TextButton", {
-        Name = "ToggleButton",
-        Parent = dropdown,
-        Size = UDim2.new(0, 35, 0, 35),
-        Position = UDim2.new(1, -35, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "▼",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.GothamBold
-    })
-    
-    local optionsList = createInstance("Frame", {
-        Name = "OptionsList",
-        Parent = dropdown,
-        Size = UDim2.new(1, 0, 0, 0),
-        Position = UDim2.new(0, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        Visible = false
-    })
-    
-    local optionsLayout = createInstance("UIListLayout", {
-        Parent = optionsList,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 2)
-    })
-    
+    -- Add new options
     for i, option in ipairs(options) do
-        local optionButton = createInstance("TextButton", {
-            Parent = optionsList,
-            Size = UDim2.new(1, 0, 0, 30),
-            BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-            Text = option,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 14,
-            Font = Enum.Font.Gotham
-        })
+        local optionButton = Instance.new("TextButton")
+        optionButton.Name = "Option_" .. i
+        optionButton.Size = UDim2.new(1, 0, 0, 35)
+        optionButton.BackgroundColor3 = DROPDOWN_SETTINGS.BACKGROUND_COLOR
+        optionButton.Text = option
+        optionButton.TextColor3 = DROPDOWN_SETTINGS.TEXT_COLOR
+        optionButton.TextSize = DROPDOWN_SETTINGS.TEXT_SIZE
+        optionButton.Font = DROPDOWN_SETTINGS.FONT
+        optionButton.Parent = self.optionsFrame
         
+        -- Hover effect
         optionButton.MouseEnter:Connect(function()
-            TweenService:Create(optionButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+            TweenService:Create(optionButton, 
+                TweenInfo.new(0.2), 
+                {BackgroundColor3 = DROPDOWN_SETTINGS.HOVER_COLOR}
+            ):Play()
         end)
         
         optionButton.MouseLeave:Connect(function()
-            TweenService:Create(optionButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+            TweenService:Create(optionButton, 
+                TweenInfo.new(0.2), 
+                {BackgroundColor3 = DROPDOWN_SETTINGS.BACKGROUND_COLOR}
+            ):Play()
         end)
         
+        -- Click handler
         optionButton.MouseButton1Click:Connect(function()
-            selectedOption.Text = option
-            TweenService:Create(dropdown, TweenInfo.new(0.2), {Size = UDim2.new(1, -20, 0, 35)}):Play()
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {Rotation = 0}):Play()
-            optionsList.Visible = false
+            self:SelectOption(option)
         end)
+        
+        table.insert(self.items, optionButton)
     end
     
-    local isOpen = false
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        isOpen = not isOpen
-        if isOpen then
-            TweenService:Create(dropdown, TweenInfo.new(0.2), {Size = UDim2.new(1, -20, 0, 35 + optionsList.AbsoluteSize.Y)}):Play()
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {Rotation = 180}):Play()
-            optionsList.Visible = true
-        else
-            TweenService:Create(dropdown, TweenInfo.new(0.2), {Size = UDim2.new(1, -20, 0, 35)}):Play()
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {Rotation = 0}):Play()
-            optionsList.Visible = false
-        end
-    end)
-    
-    return dropdown
+    -- Update options frame size
+    local totalHeight = #options * 35 + (#options - 1) * 2
+    self.maxHeight = math.min(totalHeight, DROPDOWN_SETTINGS.MAX_VISIBLE_ITEMS * 37)
 end
 
--- Create a toggle switch
-function RobloxUILibrary:createToggle(name, parent, position, callback)
-    local toggle = createInstance("Frame", {
-        Name = name,
-        Parent = parent,
-        Size = UDim2.new(0, 50, 0, 25),
-        Position = position or UDim2.new(0, 10, 0, 110),
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        BorderSizePixel = 0
-    })
+function Dropdown:SelectOption(option)
+    self.selectedOption = option
+    self.selectedText.Text = option
+    self:Toggle(false)
     
-    local cornerRadius = createInstance("UICorner", {
-        CornerRadius = UDim.new(0, 12),
-        Parent = toggle
-    })
+    -- Fire change event if exists
+    if self.onChange then
+        self.onChange(option)
+    end
+end
+
+function Dropdown:Toggle(force)
+    self.isOpen = force ~= nil and force or not self.isOpen
     
-    local switch = createInstance("Frame", {
-        Parent = toggle,
-        Size = UDim2.new(0, 21, 0, 21),
-        Position = UDim2.new(0, 2, 0, 2),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0
-    })
+    -- Animation
+    local targetSize = self.isOpen and UDim2.new(1, 0, 0, self.maxHeight) or UDim2.new(1, 0, 0, 0)
+    local targetRotation = self.isOpen and 180 or 0
     
-    local switchCorner = createInstance("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = switch
-    })
+    self.optionsFrame.Visible = true
     
-    local isOn = false
+    TweenService:Create(self.optionsFrame,
+        TweenInfo.new(DROPDOWN_SETTINGS.ANIMATION_TIME, Enum.EasingStyle.Quad),
+        {Size = targetSize}
+    ):Play()
     
-    toggle.InputBegan:Connect(function(input)
+    TweenService:Create(self.arrow,
+        TweenInfo.new(DROPDOWN_SETTINGS.ANIMATION_TIME, Enum.EasingStyle.Quad),
+        {Rotation = targetRotation}
+    ):Play()
+    
+    if not self.isOpen then
+        wait(DROPDOWN_SETTINGS.ANIMATION_TIME)
+        self.optionsFrame.Visible = false
+    end
+end
+
+function Dropdown:ConnectEvents()
+    -- Toggle dropdown on click
+    self.mainFrame.MouseButton1Click:Connect(function()
+        self:Toggle()
+    end)
+    
+    -- Close dropdown when clicking outside
+    UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            isOn = not isOn
-            if isOn then
-                TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 170, 255)}):Play()
-                TweenService:Create(switch, TweenInfo.new(0.2), {Position = UDim2.new(1, -23, 0, 2)}):Play()
-            else
-                TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
-                TweenService:Create(switch, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2)}):Play()
+            local mousePosition = UserInputService:GetMouseLocation()
+            local objects = game:GetService("Players").LocalPlayer:GetGuiObjectsAtPosition(mousePosition.X, mousePosition.Y)
+            
+            local isClickingDropdown = false
+            for _, object in ipairs(objects) do
+                if object:IsDescendantOf(self.mainFrame) then
+                    isClickingDropdown = true
+                    break
+                end
             end
             
-            if callback then
-                callback(isOn)
+            if not isClickingDropdown and self.isOpen then
+                self:Toggle(false)
             end
         end
     end)
-    
-    -- Add hover effect
-    toggle.MouseEnter:Connect(function()
-        if not isOn then
-            TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
-        end
-    end)
-    
-    toggle.MouseLeave:Connect(function()
-        if not isOn then
-            TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
-        end
-    end)
-    
-    -- Add label
-    local label = createInstance("TextLabel", {
-        Name = name .. "Label",
-        Parent = parent,
-        Size = UDim2.new(0, 100, 0, 25),
-        Position = UDim2.new(0, 70, 0, 110),
-        BackgroundTransparency = 1,
-        Text = name,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-    
-    return toggle, label
 end
 
-return RobloxUILibrary
+function Dropdown:SetOnChange(callback)
+    self.onChange = callback
+end
+
+-- Usage example:
+--[[
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 300, 0, 400)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.Parent = ScreenGui
+
+local options = {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5"}
+local dropdown = Dropdown.new(Frame, options)
+
+dropdown:SetOnChange(function(selectedOption)
+    print("Selected:", selectedOption)
+end)
+]]--
+
+return Dropdown
