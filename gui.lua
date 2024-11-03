@@ -3,7 +3,10 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
 
 local UILibrary = {}
 UILibrary.__index = UILibrary
@@ -25,7 +28,7 @@ function UILibrary.new(title)
     
     self.ScreenGui = CreateInstance("ScreenGui", {
         Name = "UILibrary",
-        Parent = CoreGui,
+        Parent = Character,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     })
     
